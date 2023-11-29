@@ -8,7 +8,6 @@ import (
 // ecb模式安全性不足，go原生没有提供，只能自己写
 
 func init() {
-	RegisterCoder("", &aesEcb{})
 	RegisterCoder(CoderEcb, &aesEcb{})
 }
 

@@ -9,7 +9,6 @@ import (
 )
 
 func init() {
-	RegisterSigner("", &md5sign{})
 	RegisterSigner(SignerMd5, &md5sign{})
 }
 

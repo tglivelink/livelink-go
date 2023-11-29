@@ -3,7 +3,6 @@ package codec
 import "encoding/json"
 
 func init() {
-	RegisterSerializer("", &sJson{})
 	RegisterSerializer(SerializerJson, &sJson{})
 }
 

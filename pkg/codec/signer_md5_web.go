@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	RegisterSigner(SignerMd5Web, &md5WebSign{})
+	RegisterSigner(SignerMd5Fixed, &md5WebSign{})
 }
 
 type md5WebSign struct{}

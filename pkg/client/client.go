@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/huangzixiang5/livelink-go/codec"
-	"github.com/huangzixiang5/livelink-go/config"
-	"github.com/huangzixiang5/livelink-go/log"
-	"github.com/huangzixiang5/livelink-go/util"
+	"github.com/huangzixiang5/livelink-go/pkg/codec"
+	"github.com/huangzixiang5/livelink-go/pkg/config"
+	"github.com/huangzixiang5/livelink-go/pkg/log"
+	"github.com/huangzixiang5/livelink-go/pkg/util"
 )
 
 // Client 客户端接口
@@ -35,7 +35,7 @@ type client struct {
 func (c *client) Do(ctx context.Context, head *ReqHead, req interface{},
 	rsp interface{}, opts ...Options) error {
 
-	ctx = util.WithTraceID(ctx, fmt.Sprintf("%x", util.RandBytes(8)))
+	ctx = util.EnsureTraceID(ctx)
 
 	opt := c.getOption(opts...)
 	if err := c.checkOpt(opt); err != nil {
@@ -72,9 +72,9 @@ func (c *client) getOption(opts ...Options) *Option {
 	c.optOnce.Do(func() {
 		cfg := config.GlobalConfig()
 		c.opt = &Option{
-			Serializer: cfg.Serializer,
-			Coder:      cfg.Coder,
-			Signer:     cfg.Signer,
+			Serializer: codec.SerializerType(cfg.Serializer),
+			Coder:      codec.CodeType(cfg.Coder),
+			Signer:     codec.SignType(cfg.Signer),
 			HttpClient: httpClient,
 		}
 	})
@@ -111,16 +111,7 @@ func (c *client) checkHead(head *ReqHead, opt *Option) error {
 
 func (c *client) getSignMap(head *ReqHead, req interface{}, opt *Option) (map[string]string, error) {
 
-	kvs := make(map[string]string, 16)
-
-	kvs["livePlatId"] = head.LivePlatId
-	kvs["actId"] = fmt.Sprintf("%d", head.ActId)
-	kvs["gameId"] = head.GameId
-	kvs["t"] = fmt.Sprintf("%d", time.Now().Unix())
-	kvs["nonce"] = fmt.Sprintf("%x", util.RandBytes(3))
-	if head.FromGame {
-		kvs["fromGame"] = "1"
-	}
+	kvs := head.FixToKVs()
 	if head.PathOrApiName != "" && head.PathOrApiName[0] != '/' {
 		kvs["apiName"] = head.PathOrApiName
 	}
@@ -170,6 +161,11 @@ func (c *client) getHttpReq(ctx context.Context, head *ReqHead,
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, addr, bytes.NewBuffer(bs))
 	if err != nil {
 		return nil, fmt.Errorf("error occurred when create http.req: %w", err)
+	}
+
+	switch opt.Serializer {
+	case codec.SerializerJson:
+		httpReq.Header.Set("Content-Type", "application/json")
 	}
 
 	return httpReq, nil

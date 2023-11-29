@@ -22,9 +22,9 @@ type Config struct {
 	SigKey string `json:"sig_key" yaml:"sig_key"` // 用于计算签名
 	SecKey string `json:"sec_key" yaml:"sec_key"` // 用于计算用户加解密信息
 
-	Signer     string `json:"signer" yaml:"signer"`         // 签名方式
-	Coder      string `json:"coder" yaml:"coder"`           // 用户信息加解密方式
-	Serializer string `json:"serializer" yaml:"serializer"` // 序列化方式
+	Signer     int `json:"signer" yaml:"signer"`         // 签名方式
+	Coder      int `json:"coder" yaml:"coder"`           // 用户信息加解密方式
+	Serializer int `json:"serializer" yaml:"serializer"` // 序列化方式
 }
 
 // GlobalConfig 获取全局配置

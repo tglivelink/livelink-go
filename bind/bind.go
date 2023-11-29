@@ -1,15 +1,15 @@
-package livelink
+package bind
 
 import (
 	"context"
 
-	"github.com/huangzixiang5/livelink-go/client"
+	"github.com/huangzixiang5/livelink-go/pkg/client"
 )
 
 // BindApi 绑定相关api
 type BindApi interface {
 	// GetBoundGameRole 拉取当前用户已绑定的游戏账号信息
-	GetBoundGameRole(ctx context.Context, head *client.ReqHead, opts ...client.Options) (rsp GetBindInfoRsp, err error)
+	GetBoundGameRole(ctx context.Context, head *client.ReqParam, opts ...client.Options) (rsp GetBindInfoRsp, err error)
 }
 
 // NewBindApi xxxx
@@ -43,10 +43,14 @@ type GetBindInfoRsp struct {
 }
 
 // GetBoundGameRole 拉取当前用户已绑定的游戏账号信息
-func (ba *bindApi) GetBoundGameRole(ctx context.Context, head *client.ReqHead, opts ...client.Options) (rsp GetBindInfoRsp, err error) {
+func (ba *bindApi) GetBoundGameRole(ctx context.Context, head *client.ReqParam, opts ...client.Options) (rsp GetBindInfoRsp, err error) {
 
-	head.PathOrApiName = "GetBindInfo"
-	if err = ba.client.Do(ctx, head, nil, &rsp, opts...); err != nil {
+	h := &client.ReqHead{
+		PathOrApiName: "GetBindInfo",
+		ReqParam:      *head,
+	}
+
+	if err = ba.client.Do(ctx, h, nil, &rsp, opts...); err != nil {
 		return
 	}
 
