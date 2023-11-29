@@ -12,7 +12,7 @@ func TestGetBoundGameRole(t *testing.T) {
 	NewBindApi().GetBoundGameRole(context.Background(), &client.ReqHead{
 		LivePlatId: "huya",
 		GameId:     "cf",
-		User:       &client.PlatUser{Userid: "2211471928"},
+		User:       &client.PlatUser{Userid: "xxxxx"},
 		FromGame:   false,
 	})
 }
