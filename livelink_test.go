@@ -26,3 +26,17 @@ func TestArgsForMiniProgram(t *testing.T) {
 	arg, _ := ArgsForMiniProgram(&param, "1111222233334444", "1111222233334444")
 	fmt.Println(arg)
 }
+
+func TestArgsForIframe(t *testing.T) {
+	param := IframeReq{
+		GameId:     "cf",
+		Timestamp:  time.Now().Unix(),
+		LivePlatId: "huya",
+		ActId:      123,
+		User: client.PlatUser{
+			Userid: "hughhuangtest",
+		},
+	}
+	arg, _ := ArgsForIframe(&param, "1111222233334444", "1111222233334444")
+	fmt.Println(arg)
+}

@@ -73,3 +73,60 @@ func ArgsForMiniProgram(param *MiniProgramReq, sigKey, secKey string, opts ...cl
 
 	return t.Encode(), nil
 }
+
+/************************************/
+
+type IframeReq struct {
+	GameId     string          // 游戏id,必填
+	Timestamp  int64           // 时间戳（秒），必填
+	LivePlatId string          // 平台id,必填
+	ActId      uint64          // 活动id，必填
+	User       client.PlatUser // 用户信息，必填
+}
+
+// ArgsForIframe 生成拉起内嵌活动iframe需要的参数
+func ArgsForIframe(param *IframeReq, sigKey, secKey string, opts ...client.Options) (string, error) {
+
+	if param.GameId == "" || param.LivePlatId == "" ||
+		param.Timestamp <= 0 || param.User.Userid == "" || param.ActId <= 0 {
+		return "", fmt.Errorf("必填参数不能为空")
+	}
+
+	opt := client.Option{}
+	for _, v := range opts {
+		v(&opt)
+	}
+
+	if err := opt.Check(); err != nil {
+		return "", err
+	}
+
+	userByte, err := codec.GetSerializer(opt.Serializer).Marshal(param.User)
+	if err != nil {
+		return "", err
+	}
+	code, err := codec.GetCoder(opt.Coder).Encrypt(userByte, secKey)
+	if err != nil {
+		return "", err
+	}
+
+	kvs := map[string]string{
+		"gameId":     param.GameId,
+		"livePlatId": param.LivePlatId,
+		"code":       string(code),
+		"timestamp":  fmt.Sprintf("%d", param.Timestamp),
+		"v":          "2.0",
+		"actId":      fmt.Sprintf("%d", param.ActId),
+		"appId":      param.LivePlatId,
+	}
+
+	sig := codec.GetSigner(opt.Signer).Sign(kvs, sigKey)
+	kvs["sig"] = sig
+
+	t := url.Values{}
+	for k, v := range kvs {
+		t.Add(k, v)
+	}
+
+	return t.Encode(), nil
+}

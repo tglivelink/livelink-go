@@ -8,16 +8,6 @@ import (
 	"strings"
 )
 
-// UnsignField 不参与签名的字段
-var UnsignField = map[string]struct{}{
-	"c":        {},
-	"apiName":  {},
-	"sig":      {},
-	"fromGame": {},
-	"backUrl":  {},
-	"a":        {},
-}
-
 func init() {
 	RegisterSigner("", &md5sign{})
 	RegisterSigner(SignerMd5, &md5sign{})
@@ -27,9 +17,19 @@ type md5sign struct{}
 
 func (s *md5sign) Sign(kvs map[string]string, secret string) string {
 
+	// 不参与签名的字段
+	unsignField := map[string]struct{}{
+		"c":        {},
+		"apiName":  {},
+		"sig":      {},
+		"fromGame": {},
+		"backUrl":  {},
+		"a":        {},
+	}
+
 	temp := make(map[string]string, len(kvs))
 	for k, v := range kvs {
-		if _, ok := UnsignField[k]; ok {
+		if _, ok := unsignField[k]; ok {
 			continue
 		}
 		temp[k] = v
