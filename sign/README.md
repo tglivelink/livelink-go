@@ -1,47 +1,64 @@
 ## 辅助计算请求签名
 
-接入方可以参考以下方式生成接口签名，发起接口调用
+接入方可以参考以下方式生成接口签名，自行发起接口调用
 
 ### 拉起小程序签名 
 ```go
-import "github.com/huangzixiang5/livelink-go/sign"
+import (
+	"github.com/huangzixiang5/livelink-go/pkg/client"
+	"github.com/huangzixiang5/livelink-go/pkg/config"
+	"github.com/huangzixiang5/livelink-go/sign"
+)
 
-param := client.ReqParam{
-	GameId:     "cf",
-	LivePlatId: "huya",
-	User: &client.PlatUser{
-		Userid: "hughtest",
+param := sign.MiniProgramReq{
+	ReqParam: client.ReqParam{
+		GameId:     "cf",
+		LivePlatId: "huya",
+		User: &client.PlatUser{
+			Userid: "hughtest",
+		},
+		Ext: map[string]string{
+			"gameAuthScene": "act_1",
+		},
 	},
-	Ext: map[string]string{
-		"gameAuthScene": "act_1",
-		"faceUrl":       "http://baidu.com",
-		"nickName":      "我",
-	},
+	FaceUrl:  "http://baidu.com",
+	NickName: "我",
 }
 
-// 注意，小程序这里需要使用 codec.SignerMd5Fixed 类型签名 
-arg, _ := sign.Sign(&param, "xxxx", "xxxxx", client.WithSigner(codec.SignerMd5Fixed))
+// 生成拉起小程序参数
+arg, _ := sign.SignForMiniProgram(&param, &config.ClientConfig{
+	SigKey: "your sig_key",
+	SecKey: "your sec_key",
+})
 
 // 使用encode后的参数拉起小程序 
 fmt.Println(arg.Encode())
 
 ```
 
-### 接口请求签名 
+### 常规接口请求签名 
 ```go 
 
-import "github.com/huangzixiang5/livelink-go/sign"
+import (
+	"github.com/huangzixiang5/livelink-go/pkg/client"
+	"github.com/huangzixiang5/livelink-go/pkg/config"
+	"github.com/huangzixiang5/livelink-go/sign"
+)
 
 param := client.ReqParam{
-	GameId:     "cf",
-	LivePlatId: "huya",
-	User: &client.PlatUser{
-		Userid: "xxx",
-	},
-	Ext: map[string]string{},
-}
+		ActId:      6490,
+		GameId:     "cf",
+		LivePlatId: "huya",
+		User: &client.PlatUser{
+			Userid: "xxxx",
+		},
+		Ext: map[string]string{},
+	}
 
-arg, _ := Sign(&param, "xxxxx", "xxxx")
+	arg, _ := sign.Sign(&param, &config.ClientConfig{
+		SigKey: "your sig_key",
+		SecKey: "your sec_key",
+	})
 
 // encode后的数据，拼接在请求的url后面即可 
 fmt.Println(arg.Encode())

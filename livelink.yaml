@@ -1,4 +1,6 @@
-domain: "https://s1.livelink.qq.com"
-appid: "xx"
-sig_key: "xxxxxx"
-sec_key: "xxxxxx"
+server:
+  domain: "https://s1.livelink.qq.com"
+client:
+  appid: "your appid"
+  sig_key: "your sig_key"
+  sec_key: "your sec_key"

@@ -18,24 +18,32 @@
 ## 调用示例
 ```go
 
-	import "github.com/huangzixiang5/livelink-go/bind"
+import (
+	"context"
 
-    // 拉取绑定的游戏角色信息
-	bind.NewBindApi().GetBoundGameRole(context.Background(), &client.ReqParam{
-		LivePlatId: "huya",
-		GameId:     "cf",
-		User:       &client.PlatUser{Userid: "xxxxx"},
-		FromGame:   false,
-	})
+	"github.com/huangzixiang5/livelink-go/pkg/client"
+	"github.com/huangzixiang5/livelink-go/bind"
+)
+
+// 拉取绑定的游戏角色信息
+bind.NewBindApi().GetBoundGameRole(context.Background(), &client.ReqParam{
+	LivePlatId: "huya",
+	GameId:     "cf",
+	User:       &client.PlatUser{Userid: "xxxxx"},
+	FromGame:   false,
+})
 
 ```
 
 ## 配置信息
 ```yaml
-domain: "https://s1.livelink.qq.com" # livelink后端域名
-appid: "huya" # 请求方标识
-sig_key: "xxxxxxx" # 计算sig需要的key 
-sec_key: "xxxxxx" # 计算用户code需要的key,用户敏感信息是通过密文传输
+server:
+  domain: "https://s1.livelink.qq.com"
+client:
+  appid: "your appid" # 请求方标识
+  sig_key: "your sig_key" # 计算sig需要的key 
+  sec_key: "your sec_key" # 计算用户code需要的key,用户敏感信息是通过密文传输
+
 ```
 
 ## 自定义功能
@@ -43,6 +51,17 @@ pkg目录下提供了相关能力的默认实现，包括配置、签名等，�
 ```go
 // 设置自己的配置加载器，需要实现pkg/config/ConfigLoader接口
 config.DefaultConfigLoader = MyConfigLoader 
+// 或者直接设置
+config.SetGlobalConfig(&config.Config{
+	Server: &config.ServerConfig{
+		Domain: "https://s1.livelink.qq.com",
+	},
+	Client: &config.ClientConfig{
+		Appid:  "huya",
+		SigKey: "xxxx",
+		SecKey: "xxxx",
+	},
+})
 
 // 设置自己的日志打印,需要实现pkg/log/Logger接口 
 log.DefaultLogger = Logger

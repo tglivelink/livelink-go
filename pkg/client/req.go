@@ -45,8 +45,7 @@ func (r *ReqParam) FixToKVs() map[string]string {
 
 // PlatUser 平台用户
 type PlatUser struct {
-	Userid   string `json:"userid"`             // 用户uid，必填
-	ClientIp string `json:"clientIp,omitempty"` // 用户ip 0.0.0.0
+	Userid string `json:"userid"` // 用户uid，必填
 }
 
 func (*PlatUser) nocopy() {}

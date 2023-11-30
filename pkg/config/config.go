@@ -16,15 +16,19 @@ import (
 可以通过设置DefaultConfigLoader，自定义配置加载器
 */
 
-type Config struct {
-	Domain string `json:"domain" yaml:"domain"`   // 请求地址
-	Appid  string `json:"appid" yaml:"appid"`     // 请求方标识
-	SigKey string `json:"sig_key" yaml:"sig_key"` // 用于计算签名
-	SecKey string `json:"sec_key" yaml:"sec_key"` // 用于计算用户加解密信息
+type ServerConfig struct {
+	Domain string `json:"domain" yaml:"domain"`
+}
 
-	Signer     int `json:"signer" yaml:"signer"`         // 签名方式
-	Coder      int `json:"coder" yaml:"coder"`           // 用户信息加解密方式
-	Serializer int `json:"serializer" yaml:"serializer"` // 序列化方式
+type ClientConfig struct {
+	Appid  string `json:"appid" yaml:"appid"`
+	SigKey string `json:"sig_key" yaml:"sig_key"`
+	SecKey string `json:"sec_key" yaml:"sec_key"`
+}
+
+type Config struct {
+	Server *ServerConfig `json:"server" yaml:"server"`
+	Client *ClientConfig `json:"client" yaml:"client"`
 }
 
 // GlobalConfig 获取全局配置
@@ -64,4 +68,15 @@ func (c *config) Load() *Config {
 		}
 	})
 	return c.cfg
+}
+
+/********************/
+
+func SetGlobalConfig(cfg *Config) {
+	c := &config{
+		cfg:  cfg,
+		once: sync.Once{},
+	}
+	c.once.Do(func() {})
+	DefaultConfigLoader = c
 }

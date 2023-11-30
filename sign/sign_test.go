@@ -8,30 +8,44 @@ import (
 	"testing"
 
 	"github.com/huangzixiang5/livelink-go/pkg/client"
-	"github.com/huangzixiang5/livelink-go/pkg/codec"
+	"github.com/huangzixiang5/livelink-go/pkg/config"
 )
+
+func init() {
+	config.SetGlobalConfig(&config.Config{
+		Server: &config.ServerConfig{
+			Domain: "https://s1.livelink.qq.com",
+		},
+		Client: &config.ClientConfig{
+			Appid:  "huya",
+			SigKey: "your sig_key",
+			SecKey: "your sec_key",
+		},
+	})
+}
 
 // TestSignForMiniProgram 测试拉起小程序
 func TestSignForMiniProgram(t *testing.T) {
-	param := client.ReqParam{
-		GameId:     "cf",
-		LivePlatId: "huya",
-		User: &client.PlatUser{
-			Userid: "hughtest",
+	param := MiniProgramReq{
+		ReqParam: client.ReqParam{
+			GameId:     "cf",
+			LivePlatId: "huya",
+			User: &client.PlatUser{
+				Userid: "hughtest",
+			},
+			Ext: map[string]string{
+				"gameAuthScene": "act_1",
+			},
 		},
-		Ext: map[string]string{
-			"gameAuthScene": "act_1",
-			"faceUrl":       "http://baidu.com",
-			"nickName":      "我",
-		},
+		FaceUrl:  "http://baidu.com",
+		NickName: "我",
 	}
 
-	// 注意，小程序这里需要使用 codec.SignerMd5Fixed 签名方式
-	arg, _ := Sign(&param, "xxxxxxx", "xxxxxx", client.WithSigner(codec.SignerMd5Fixed))
+	// 生成拉起小程序参数
+	arg, _ := SignForMiniProgram(&param, config.GlobalConfig().Client)
 	t.Logf("arg:%s", arg.Encode())
 
 	// {
-	// 	config.ConfigPath = "../livelink.yaml"
 	// 	client.DefaultClient.Do(context.Background(), &client.ReqHead{
 	// 		PathOrApiName: "/api/h5/loginPlatUserInH5",
 	// 		ReqParam: client.ReqParam{
@@ -55,12 +69,12 @@ func TestSignForWeb(t *testing.T) {
 		GameId:     "cf",
 		LivePlatId: "huya",
 		User: &client.PlatUser{
-			Userid: "2211471928",
+			Userid: "xxxx",
 		},
 		Ext: map[string]string{},
 	}
 
-	arg, _ := Sign(&param, "ea58755ce4320a2c", "09e645299b1a7e28")
+	arg, _ := Sign(&param, config.GlobalConfig().Client)
 	t.Logf("arg:%s", arg.Encode())
 
 	// 直接用计算后的数据发起请求

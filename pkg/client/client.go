@@ -8,7 +8,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"sync"
 	"time"
 
 	"github.com/huangzixiang5/livelink-go/pkg/codec"
@@ -22,14 +21,19 @@ type Client interface {
 	Do(ctx context.Context, head *ReqHead, req interface{}, rsp interface{}, opts ...Options) error
 }
 
-var DefaultClient Client = &client{}
+var DefaultClient Client = New()
 
 //////////////////////////////////////
 
+func New() Client {
+	opt := NewOption()
+	opt.HttpClient = httpClient
+	return &client{opt: opt}
+}
+
 // 默认使用http客户端
 type client struct {
-	opt     *Option
-	optOnce sync.Once
+	opt *Option
 }
 
 func (c *client) Do(ctx context.Context, head *ReqHead, req interface{},
@@ -69,15 +73,6 @@ func (c *client) Do(ctx context.Context, head *ReqHead, req interface{},
 }
 
 func (c *client) getOption(opts ...Options) *Option {
-	c.optOnce.Do(func() {
-		cfg := config.GlobalConfig()
-		c.opt = &Option{
-			Serializer: codec.SerializerType(cfg.Serializer),
-			Coder:      codec.CodeType(cfg.Coder),
-			Signer:     codec.SignType(cfg.Signer),
-			HttpClient: httpClient,
-		}
-	})
 
 	var opt *Option
 
@@ -100,10 +95,10 @@ func (c *client) checkOpt(opt *Option) error {
 func (c *client) checkHead(head *ReqHead, opt *Option) error {
 	fromGame := head.FromGame
 	if head.LivePlatId == "" && !fromGame {
-		head.LivePlatId = config.GlobalConfig().Appid
+		head.LivePlatId = config.GlobalConfig().Client.Appid
 	}
 	if head.GameId == "" && fromGame {
-		head.GameId = config.GlobalConfig().Appid
+		head.GameId = config.GlobalConfig().Client.Appid
 	}
 
 	return nil
@@ -123,13 +118,13 @@ func (c *client) getSignMap(head *ReqHead, req interface{}, opt *Option) (map[st
 	if err != nil {
 		return nil, fmt.Errorf("error occurred when serialize user: %w", err)
 	}
-	user2, err := codec.GetCoder(opt.Coder).Encrypt(user, config.GlobalConfig().SecKey)
+	user2, err := codec.GetCoder(opt.Coder).Encrypt(user, config.GlobalConfig().Client.SecKey)
 	if err != nil {
 		return nil, fmt.Errorf("error occurred when encrypt user: %w", err)
 	}
 	kvs["code"] = string(user2)
 
-	kvs["sig"] = codec.GetSigner(opt.Signer).Sign(kvs, config.GlobalConfig().SigKey)
+	kvs["sig"] = codec.GetSigner(opt.Signer).Sign(kvs, config.GlobalConfig().Client.SigKey)
 
 	return kvs, nil
 }
@@ -172,7 +167,7 @@ func (c *client) getHttpReq(ctx context.Context, head *ReqHead,
 }
 
 func (c *client) getDomain(opt *Option) string {
-	return config.GlobalConfig().Domain
+	return config.GlobalConfig().Server.Domain
 }
 
 func (c *client) mergePath(domain, path string) string {
