@@ -65,7 +65,7 @@ act.NewActApi().CallFlow(context.Background(), &client.ReqParam{
 ## 自定义功能
 pkg目录下提供了相关能力（配置、签名、请求客户端等）的默认实现，如果有特殊需求，可以通过其中暴露的接口修改  
 
-### 配置加载方式修改
+### 自定义配置加载
 ```go
 // 1. 可以自定义配置文件的加载路径,默认值为 “./livelink.yaml”，注意：需要在第一次发起调用前指定 
 config.ConfigPath = "../livelink.yaml"
@@ -85,11 +85,9 @@ config.SetGlobalConfig(&config.Config{
 	},
 })
 
-
-
 ```
 
-### 日志打印修改
+### 自定义日志输出
 ```go
 // 设置自己的日志输出,需要实现pkg/log/Logger接口,默认会将日志打印到标准输出 
 log.DefaultLogger = Logger
