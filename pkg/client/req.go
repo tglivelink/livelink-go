@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/huangzixiang5/livelink-go/pkg/util"
+	"github.com/tglivelink/livelink-go/pkg/util"
 )
 
 // ReqHead 请求

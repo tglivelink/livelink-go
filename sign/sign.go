@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/huangzixiang5/livelink-go/pkg/client"
-	"github.com/huangzixiang5/livelink-go/pkg/codec"
-	"github.com/huangzixiang5/livelink-go/pkg/config"
+	"github.com/tglivelink/livelink-go/pkg/client"
+	"github.com/tglivelink/livelink-go/pkg/codec"
+	"github.com/tglivelink/livelink-go/pkg/config"
 )
 
 /**************************/

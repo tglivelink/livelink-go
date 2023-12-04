@@ -10,10 +10,10 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/huangzixiang5/livelink-go/pkg/codec"
-	"github.com/huangzixiang5/livelink-go/pkg/config"
-	"github.com/huangzixiang5/livelink-go/pkg/log"
-	"github.com/huangzixiang5/livelink-go/pkg/util"
+	"github.com/tglivelink/livelink-go/pkg/codec"
+	"github.com/tglivelink/livelink-go/pkg/config"
+	"github.com/tglivelink/livelink-go/pkg/log"
+	"github.com/tglivelink/livelink-go/pkg/util"
 )
 
 // Client 客户端接口

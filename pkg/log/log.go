@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/huangzixiang5/livelink-go/pkg/util"
+	"github.com/tglivelink/livelink-go/pkg/util"
 )
 
 func Infof(ctx context.Context, format string, args ...interface{}) {

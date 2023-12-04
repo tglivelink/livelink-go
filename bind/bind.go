@@ -3,7 +3,7 @@ package bind
 import (
 	"context"
 
-	"github.com/huangzixiang5/livelink-go/pkg/client"
+	"github.com/tglivelink/livelink-go/pkg/client"
 )
 
 // BindApi 绑定相关api

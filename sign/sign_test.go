@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/huangzixiang5/livelink-go/pkg/client"
-	"github.com/huangzixiang5/livelink-go/pkg/config"
+	"github.com/tglivelink/livelink-go/pkg/client"
+	"github.com/tglivelink/livelink-go/pkg/config"
 )
 
 func init() {

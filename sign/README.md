@@ -5,11 +5,12 @@
 ### 拉起小程序签名 
 ```go
 import (
-	"github.com/huangzixiang5/livelink-go/pkg/client"
-	"github.com/huangzixiang5/livelink-go/pkg/config"
-	"github.com/huangzixiang5/livelink-go/sign"
+	"github.com/tglivelink/livelink-go/pkg/client"
+	"github.com/tglivelink/livelink-go/pkg/config"
+	"github.com/tglivelink/livelink-go/sign"
 )
 
+// 构建必需参数结构 
 param := sign.MiniProgramReq{
 	ReqParam: client.ReqParam{
 		GameId:     "cf",
@@ -40,9 +41,9 @@ fmt.Println(arg.Encode())
 ```go 
 
 import (
-	"github.com/huangzixiang5/livelink-go/pkg/client"
-	"github.com/huangzixiang5/livelink-go/pkg/config"
-	"github.com/huangzixiang5/livelink-go/sign"
+	"github.com/tglivelink/livelink-go/pkg/client"
+	"github.com/tglivelink/livelink-go/pkg/config"
+	"github.com/tglivelink/livelink-go/sign"
 )
 
 param := client.ReqParam{

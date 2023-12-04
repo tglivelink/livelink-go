@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/huangzixiang5/livelink-go/pkg/client"
-	"github.com/huangzixiang5/livelink-go/pkg/config"
+	"github.com/tglivelink/livelink-go/pkg/client"
+	"github.com/tglivelink/livelink-go/pkg/config"
 )
 
 // TestGetBoundGameRole xxxx
