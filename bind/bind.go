@@ -11,7 +11,7 @@ import (
 // BindApi 绑定相关api
 type BindApi interface {
 	// GetBoundGameRole 拉取当前用户已绑定的游戏账号信息
-	GetBoundGameRole(ctx context.Context, head *client.Param, opts ...client.Options) (rsp GetBoundGameRoleRsp, err error)
+	GetBoundGameRole(ctx context.Context, param *client.Param, opts ...client.Options) (rsp GetBoundGameRoleRsp, err error)
 	// GetBoundGameRoleInAct 拉取当前用户在某个活动的绑定关系（针对不可换绑活动）
 	GetBoundGameRoleInAct(ctx context.Context, param *client.Param, opts ...client.Options) (rsp GetBoundGameRoleInActRsp, err error)
 	// BindGameRoleInAct 将用户当前游戏账号应用于某个活动 （针对不可换绑活动）
