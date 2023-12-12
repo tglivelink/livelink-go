@@ -8,26 +8,22 @@ import (
 	"testing"
 
 	"github.com/tglivelink/livelink-go/pkg/client"
-	"github.com/tglivelink/livelink-go/pkg/config"
 )
 
+var secret = client.Secret{}
+
 func init() {
-	config.SetGlobalConfig(&config.Config{
-		Server: &config.ServerConfig{
-			Domain: "https://s1.livelink.qq.com",
-		},
-		Client: &config.ClientConfig{
-			Appid:  "huya",
-			SigKey: "your sig_key",
-			SecKey: "your sec_key",
-		},
-	})
+	secret = client.Secret{
+		SigKey: "your sig_key",
+		SecKey: "your sec_key",
+	}
+	client.DefaultClient = client.New(secret)
 }
 
 // TestSignForMiniProgram 测试拉起小程序
 func TestSignForMiniProgram(t *testing.T) {
 	param := MiniProgramReq{
-		ReqParam: client.ReqParam{
+		Param: client.Param{
 			GameId:     "cf",
 			LivePlatId: "huya",
 			User: &client.PlatUser{
@@ -42,29 +38,29 @@ func TestSignForMiniProgram(t *testing.T) {
 	}
 
 	// 生成拉起小程序参数
-	arg, _ := SignForMiniProgram(&param, config.GlobalConfig().Client)
+	arg, _ := SignForMiniProgram(&param, &secret)
 	t.Logf("arg:%s", arg.Encode())
 
 	// {
-	// 	client.DefaultClient.Do(context.Background(), &client.ReqHead{
+	// 	client.DefaultClient.Do(context.Background(), &client.Head{
 	// 		PathOrApiName: "/api/h5/loginPlatUserInH5",
-	// 		ReqParam: client.ReqParam{
+	// 		Param: &client.Param{
 	// 			ActId:      0,
 	// 			LivePlatId: "",
 	// 			GameId:     "",
 	// 			User:       nil,
-	// 			FromGame:   false,
 	// 			Ext:        map[string]string{},
 	// 		},
-	// 	}, map[string]string{
-	// 		"rawUrl": arg.Encode(),
-	// 	}, nil)
+	// 		Body: map[string]string{
+	// 			"rawUrl": arg.Encode(),
+	// 		},
+	// 	})
 	// }
 }
 
 // TestSignForWeb xxxx
 func TestSignForWeb(t *testing.T) {
-	param := client.ReqParam{
+	param := client.Param{
 		ActId:      6490,
 		GameId:     "cf",
 		LivePlatId: "huya",
@@ -74,7 +70,7 @@ func TestSignForWeb(t *testing.T) {
 		Ext: map[string]string{},
 	}
 
-	arg, _ := Sign(&param, config.GlobalConfig().Client)
+	arg, _ := Sign(&param, &secret)
 	t.Logf("arg:%s", arg.Encode())
 
 	// 直接用计算后的数据发起请求
@@ -95,19 +91,18 @@ func TestSignForWeb(t *testing.T) {
 	// 	for k, v := range arg {
 	// 		data[k] = url.QueryEscape(v[0])
 	// 	}
-	// 	config.ConfigPath = "../livelink.yaml"
-	// 	client.DefaultClient.Do(context.Background(), &client.ReqHead{
+	// 	client.DefaultClient.Do(context.Background(), &client.Head{
 	// 		PathOrApiName: "toRequest",
-	// 		ReqParam: client.ReqParam{
+	// 		Param: &client.Param{
 	// 			ActId:      0,
 	// 			LivePlatId: "",
 	// 			GameId:     "",
 	// 			User:       nil,
-	// 			FromGame:   false,
 	// 			Ext: map[string]string{
 	// 				"c": "Api",
 	// 			},
 	// 		},
-	// 	}, data, nil)
+	// 		Body: data,
+	// 	})
 	// }
 }

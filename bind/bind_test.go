@@ -5,17 +5,41 @@ import (
 	"testing"
 
 	"github.com/tglivelink/livelink-go/pkg/client"
-	"github.com/tglivelink/livelink-go/pkg/config"
 )
+
+func init() {
+	client.DefaultClient = client.New(client.Secret{
+		SigKey: "your sig_key",
+		SecKey: "your sec_key",
+	})
+}
 
 // TestGetBoundGameRole xxxx
 func TestGetBoundGameRole(t *testing.T) {
-	config.ConfigPath = "../livelink.yaml"
-	NewBindApi().GetBoundGameRole(context.Background(), &client.ReqParam{
+	rsp, err := NewBindApi().GetBoundGameRole(context.Background(), &client.Param{
 		LivePlatId: "huya",
-		GameId:     "cf",
-		User:       &client.PlatUser{Userid: "xxxxx"},
-		FromGame:   false,
-	},
-	)
+		GameId:     "yxzj",
+		User:       &client.PlatUser{Userid: "xxxx"},
+	})
+	t.Logf("%v %v", rsp, err)
+}
+
+func TestGetBoundGameRoleInAct(t *testing.T) {
+	rsp, err := NewBindApi().GetBoundGameRoleInAct(context.Background(), &client.Param{
+		ActId:      6032,
+		LivePlatId: "huya",
+		GameId:     "yxzj",
+		User:       &client.PlatUser{Userid: "xxxx"},
+	})
+	t.Logf("%v %v", rsp, err)
+}
+
+func TestBindGameRoleInAct(t *testing.T) {
+	rsp, err := NewBindApi().BindGameRoleInAct(context.Background(), &client.Param{
+		ActId:      6032,
+		LivePlatId: "huya",
+		GameId:     "yxzj",
+		User:       &client.PlatUser{Userid: "xxxx"},
+	})
+	t.Logf("%v %v", rsp, err)
 }

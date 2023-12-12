@@ -6,13 +6,12 @@
 ```go
 import (
 	"github.com/tglivelink/livelink-go/pkg/client"
-	"github.com/tglivelink/livelink-go/pkg/config"
 	"github.com/tglivelink/livelink-go/sign"
 )
 
 // 构建必需参数结构 
 param := sign.MiniProgramReq{
-	ReqParam: client.ReqParam{
+	ReqParam: client.Param{
 		GameId:     "cf",
 		LivePlatId: "huya",
 		User: &client.PlatUser{
@@ -27,7 +26,7 @@ param := sign.MiniProgramReq{
 }
 
 // 生成拉起小程序参数
-arg, _ := sign.SignForMiniProgram(&param, &config.ClientConfig{
+arg, _ := sign.SignForMiniProgram(&param, &client.Secret{
 	SigKey: "your sig_key",
 	SecKey: "your sec_key",
 })
@@ -42,11 +41,10 @@ fmt.Println(arg.Encode())
 
 import (
 	"github.com/tglivelink/livelink-go/pkg/client"
-	"github.com/tglivelink/livelink-go/pkg/config"
 	"github.com/tglivelink/livelink-go/sign"
 )
 
-param := client.ReqParam{
+param := client.Param{
 		ActId:      6490,
 		GameId:     "cf",
 		LivePlatId: "huya",
@@ -56,7 +54,7 @@ param := client.ReqParam{
 		Ext: map[string]string{},
 	}
 
-	arg, _ := sign.Sign(&param, &config.ClientConfig{
+	arg, _ := sign.Sign(&param, &client.Secret{
 		SigKey: "your sig_key",
 		SecKey: "your sec_key",
 	})

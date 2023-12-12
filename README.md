@@ -8,25 +8,13 @@
 ├── act 与活动相关接口 
 ├── bind 与绑定相关接口 
 ├── pkg 内部封装，一般情况下无需关注,默认即可 
-│   ├── client 请求客户端
+│   ├── client 实际请求客户端
 │   ├── codec 序列化、签名实现、加密实现等 
-│   ├── config 配置信息 
+│   ├── errs 错误码定义 
 │   ├── log 请求/响应日志
 │   └── util
 └── sign 辅助计算签名的工具 
 ```
-
-## 配置信息
-> 接口调用需要使用到的配置信息如下
-```yaml
-server:
-  domain: "https://s1.livelink.qq.com"
-client:
-  appid: "your appid" # 请求方标识
-  sig_key: "your sig_key" # 计算sig需要的key 
-  sec_key: "your sec_key" # 计算用户code需要的key,用户敏感信息是通过密文传输
-```
-
 
 ## 调用示例
 ```go
@@ -38,57 +26,68 @@ import (
 	"github.com/tglivelink/livelink-go/bind"
 )
 
-// 指定配置文件加载路径 
-config.ConfigPath = "../livelink.yaml"
+// step.1 初始化全局客户端,只需要设置一次即可,默认所有的请求都会使用这个客户端
+client.DefaultClient = client.New(client.Secret{
+	SigKey: "your sig_key",
+	SecKey: "your sec_key",
+})
 
-// 拉取绑定的游戏角色信息
-bind.NewBindApi().GetBoundGameRole(context.Background(), &client.ReqParam{
+
+// eg. 直接调用拉取绑定的游戏角色信息
+NewBindApi().GetBoundGameRole(context.Background(), &client.Param{
 	LivePlatId: "huya",
 	GameId:     "cf",
 	User:       &client.PlatUser{Userid: "xxxxx"},
-	FromGame:   false,
-})
+},
+)
 
-// 执行活动流程调用 
-act.NewActApi().CallFlow(context.Background(), &client.ReqParam{
-	ActId:      6512,
+// eg. 如果部分api请求需要使用不同的签名信息，可以这样设置，不会影响全局
+api := NewBindApi(client.WithSecret(client.Secret{
+	SigKey: "other sig_key",
+	SecKey: "other sec_key",
+}))
+api.GetBoundGameRole(context.Background(), &client.Param{
 	LivePlatId: "huya",
-	GameId:     "yxzj",
-	User:       &client.PlatUser{},
-	FromGame:   false,
-}, map[string]interface{}{
-	"flowId": "xxx",
+	GameId:     "cf",
+	User:       &client.PlatUser{Userid: "xxxxx"},
+},
+)
+```
+
+## 直接使用底层发起调用
+```go 
+import (
+	"github.com/tglivelink/livelink-go/pkg/client"
+)
+
+// 创建一个全局请求客户端
+cli := client.New(client.Secret{
+	SigKey: "your sig_key",
+	SecKey: "your sec_key",
 })
+
+// 使用客户端发起请求
+rsp := make(map[string]interface{})
+err := cli.Do(context.Background(), &client.Head{
+	PathOrApiName: "GetBindInfo", // 后端接口 
+	Param: &client.Param{
+		LivePlatId: "huya",
+		GameId:     "yxzj",
+		User:       &client.PlatUser{Userid: "xxx"},
+	},
+	Rsp: &rsp,
+})
+if err != nil {
+	return
+}
+
 ```
 
 
-## 自定义功能
-pkg目录下提供了相关能力（配置、签名、请求客户端等）的默认实现，如果有特殊需求，可以通过其中暴露的接口修改  
-
-### 自定义配置加载
-```go
-// 1. 可以自定义配置文件的加载路径,默认值为 “./livelink.yaml”，注意：需要在第一次发起调用前指定 
-config.ConfigPath = "../livelink.yaml"
-
-// 2. 可以设置自己的配置加载器，需要实现pkg/config/ConfigLoader接口
-config.DefaultConfigLoader = MyConfigLoader 
-
-// 3. 可以直接调用接口进行设置
-config.SetGlobalConfig(&config.Config{
-	Server: &config.ServerConfig{
-		Domain: "https://s1.livelink.qq.com",
-	},
-	Client: &config.ClientConfig{
-		Appid:  "huya",
-		SigKey: "xxxx",
-		SecKey: "xxxx",
-	},
-})
-
-```
 
 ### 自定义日志输出
 ```go
 // 设置自己的日志输出,需要实现pkg/log/Logger接口,默认会将日志打印到标准输出 
+// 设置为nil则关闭日志 
 log.DefaultLogger = Logger
 ```

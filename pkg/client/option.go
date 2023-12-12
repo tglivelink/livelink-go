@@ -3,28 +3,40 @@ package client
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/tglivelink/livelink-go/pkg/codec"
 )
 
-type Option struct {
-	Serializer codec.SerializerType // 序列化方式
-	Coder      codec.CodeType       // 信息加解密方式
-	Signer     codec.SignType       // 签名方式
+var (
+	Domain = "https://s1.livelink.qq.com"
+)
 
-	// 自定义http请求客户端
+type Option struct {
+	Serializer codec.SerializerType
+	Coder      codec.CodeType
+	Signer     codec.SignType
+
+	Domain string
+	SigKey string
+	SecKey string
+
+	Timeout time.Duration
+
 	HttpClient interface {
 		Do(*http.Request) (*http.Response, error)
 	}
 }
 
 func NewOption() *Option {
-	return &Option{
+	opt := &Option{
 		Serializer: codec.SerializerJson,
 		Coder:      codec.CoderEcb,
 		Signer:     codec.SignerMd5,
-		HttpClient: nil,
+		Domain:     Domain,
+		HttpClient: httpClient(),
 	}
+	return opt
 }
 
 func (o *Option) Check() error {
@@ -47,8 +59,42 @@ func (o *Option) Clone() *Option {
 
 type Options func(o *Option)
 
+/**********/
+
+// WithSigner xxxx
 func WithSigner(t codec.SignType) Options {
 	return func(o *Option) {
 		o.Signer = t
+	}
+}
+
+// WithHttpClient xxxx
+func WithHttpClient(c interface {
+	Do(*http.Request) (*http.Response, error)
+}) Options {
+	return func(o *Option) {
+		o.HttpClient = c
+	}
+}
+
+// WithSecret xxxx
+func WithSecret(s Secret) Options {
+	return func(o *Option) {
+		o.SecKey = s.SecKey
+		o.SigKey = s.SigKey
+	}
+}
+
+// WithDomain xxxx
+func WithDomain(s string) Options {
+	return func(o *Option) {
+		o.Domain = s
+	}
+}
+
+// WithTimeout xxxx
+func WithTimeout(d time.Duration) Options {
+	return func(o *Option) {
+		o.Timeout = d
 	}
 }

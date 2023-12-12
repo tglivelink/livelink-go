@@ -11,51 +11,82 @@ import (
 	"time"
 
 	"github.com/tglivelink/livelink-go/pkg/codec"
-	"github.com/tglivelink/livelink-go/pkg/config"
 	"github.com/tglivelink/livelink-go/pkg/log"
-	"github.com/tglivelink/livelink-go/pkg/util"
 )
 
 // Client 客户端接口
 type Client interface {
-	Do(ctx context.Context, head *ReqHead, req interface{}, rsp interface{}, opts ...Options) error
+	Do(ctx context.Context, head *Head, opts ...Options) error
 }
 
-var DefaultClient Client = New()
+var DefaultClient Client = New(Secret{})
 
-//////////////////////////////////////
-
-func New() Client {
+func New(secret Secret) Client {
 	opt := NewOption()
-	opt.HttpClient = httpClient
+	opt.SecKey = secret.SecKey
+	opt.SigKey = secret.SigKey
 	return &client{opt: opt}
 }
+
+/***************************************/
 
 // 默认使用http客户端
 type client struct {
 	opt *Option
 }
 
-func (c *client) Do(ctx context.Context, head *ReqHead, req interface{},
-	rsp interface{}, opts ...Options) error {
-
-	ctx = util.EnsureTraceID(ctx)
+func (c *client) Do(ctx context.Context, head *Head, opts ...Options) (err error) {
 
 	opt := c.getOption(opts...)
 	if err := c.checkOpt(opt); err != nil {
 		return err
 	}
 
+	if err := c.doWithOption(ctx, head, opt); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *client) getOption(opts ...Options) *Option {
+
+	if len(opts) == 0 {
+		return c.opt
+	}
+
+	opt := c.opt.Clone()
+	for _, v := range opts {
+		v(opt)
+	}
+	return opt
+}
+
+func (c *client) checkOpt(opt *Option) error {
+	if err := opt.Check(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *client) doWithOption(ctx context.Context, head *Head, opt *Option) error {
+
+	if opt.Timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, opt.Timeout)
+		defer cancel()
+	}
+
 	if err := c.checkHead(head, opt); err != nil {
 		return err
 	}
 
-	kvs, err := c.getSignMap(head, req, opt)
+	kvs, err := c.getSignedMap(head, opt)
 	if err != nil {
 		return err
 	}
 
-	httpReq, err := c.getHttpReq(ctx, head, kvs, req, opt)
+	httpReq, err := c.getHttpReq(ctx, head, kvs, opt)
 	if err != nil {
 		return err
 	}
@@ -65,88 +96,61 @@ func (c *client) Do(ctx context.Context, head *ReqHead, req interface{},
 		return err
 	}
 
-	if err := c.parserHttpRsp(ctx, httpRsp, rsp, opt); err != nil {
+	if err := c.parserHttpRsp(ctx, httpRsp, head.Rsp, opt); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func (c *client) getOption(opts ...Options) *Option {
-
-	var opt *Option
-
-	if len(opts) == 0 {
-		opt = c.opt
-	} else {
-		opt = c.opt.Clone()
-		for _, v := range opts {
-			v(opt)
-		}
+func (c *client) checkHead(head *Head, opt *Option) error {
+	if head.PathOrApiName == "" {
+		return fmt.Errorf("请求路径不能为空")
 	}
-
-	return opt
-}
-
-func (c *client) checkOpt(opt *Option) error {
-	return opt.Check()
-}
-
-func (c *client) checkHead(head *ReqHead, opt *Option) error {
-	fromGame := head.FromGame
-	if head.LivePlatId == "" && !fromGame {
-		head.LivePlatId = config.GlobalConfig().Client.Appid
-	}
-	if head.GameId == "" && fromGame {
-		head.GameId = config.GlobalConfig().Client.Appid
-	}
-
 	return nil
 }
 
-func (c *client) getSignMap(head *ReqHead, req interface{}, opt *Option) (map[string]string, error) {
+func (c *client) getSignedMap(head *Head, opt *Option) (map[string]string, error) {
 
-	kvs := head.FixToKVs()
+	kvs := head.Param.FixToKVs()
 	if head.PathOrApiName != "" && head.PathOrApiName[0] != '/' {
 		kvs["apiName"] = head.PathOrApiName
 	}
-	for k, v := range head.Ext {
+	for k, v := range head.Param.Ext {
 		kvs[k] = v
 	}
 
-	user, err := codec.GetSerializer(opt.Serializer).Marshal(head.User)
+	user, err := codec.GetSerializer(opt.Serializer).Marshal(head.Param.User)
 	if err != nil {
 		return nil, fmt.Errorf("error occurred when serialize user: %w", err)
 	}
-	user2, err := codec.GetCoder(opt.Coder).Encrypt(user, config.GlobalConfig().Client.SecKey)
+	user2, err := codec.GetCoder(opt.Coder).Encrypt(user, opt.SecKey)
 	if err != nil {
 		return nil, fmt.Errorf("error occurred when encrypt user: %w", err)
 	}
 	kvs["code"] = string(user2)
 
-	kvs["sig"] = codec.GetSigner(opt.Signer).Sign(kvs, config.GlobalConfig().Client.SigKey)
+	kvs["sig"] = codec.GetSigner(opt.Signer).Sign(kvs, opt.SigKey)
 
 	return kvs, nil
 }
 
-func (c *client) getHttpReq(ctx context.Context, head *ReqHead,
-	kvs map[string]string, req interface{}, opt *Option) (*http.Request, error) {
+func (c *client) getHttpReq(ctx context.Context, head *Head, kvs map[string]string, opt *Option) (*http.Request, error) {
 
-	query := url.Values{}
+	query := make(url.Values, len(kvs))
 	for k, v := range kvs {
 		query.Add(k, v)
 	}
 
-	addr := c.mergePath(c.getDomain(opt), head.PathOrApiName)
+	addr := c.mergePath(opt.Domain, head.PathOrApiName)
 	addr += "?" + query.Encode()
 
-	log.Infof(ctx, "request:%s", addr)
+	log.InfoContextf(ctx, "request:%s", addr)
 
 	var bs []byte
 	var err error
 
-	if req != nil {
-		if bs, err = codec.GetSerializer(opt.Serializer).Marshal(req); err != nil {
+	if head.Body != nil {
+		if bs, err = codec.GetSerializer(opt.Serializer).Marshal(head.Body); err != nil {
 			return nil, err
 		}
 	} else {
@@ -166,16 +170,12 @@ func (c *client) getHttpReq(ctx context.Context, head *ReqHead,
 	return httpReq, nil
 }
 
-func (c *client) getDomain(opt *Option) string {
-	return config.GlobalConfig().Server.Domain
-}
-
 func (c *client) mergePath(domain, path string) string {
 	if path == "" {
 		return domain
 	}
 
-	if path[0] != '/' { // 旧版的apiName形式
+	if path[0] != '/' { // 旧版的apiName形式,固定前缀是livelink
 		return domain + "/livelink"
 	}
 
@@ -206,7 +206,7 @@ func (c *client) parserHttpRsp(ctx context.Context, httpRsp *http.Response, rsp 
 		return fmt.Errorf("error occurred when read http.response: %w", err)
 	}
 
-	log.Infof(ctx, "response:%s", bs)
+	log.InfoContextf(ctx, "response:%s", bs)
 
 	switch v := rsp.(type) {
 	case nil:
@@ -221,21 +221,23 @@ func (c *client) parserHttpRsp(ctx context.Context, httpRsp *http.Response, rsp 
 	return nil
 }
 
-var httpClient = &http.Client{
-	Transport: &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-			DualStack: true,
-		}).DialContext,
-		ForceAttemptHTTP2:     true,
-		IdleConnTimeout:       60 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		MaxIdleConnsPerHost:   100,
-		DisableCompression:    true,
-		ExpectContinueTimeout: time.Second,
-	},
-	Jar:     nil,
-	Timeout: time.Second * 30,
+func httpClient() *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+				DualStack: true,
+			}).DialContext,
+			ForceAttemptHTTP2:     true,
+			IdleConnTimeout:       60 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			MaxIdleConnsPerHost:   300,
+			DisableCompression:    true,
+			ExpectContinueTimeout: time.Second,
+		},
+		Jar:     nil,
+		Timeout: time.Second * 60,
+	}
 }

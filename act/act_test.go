@@ -5,21 +5,43 @@ import (
 	"testing"
 
 	"github.com/tglivelink/livelink-go/pkg/client"
-	"github.com/tglivelink/livelink-go/pkg/config"
 )
 
 func init() {
-	config.ConfigPath = "../livelink.yaml"
+	client.DefaultClient = client.New(client.Secret{
+		SigKey: "your sig_key",
+		SecKey: "your sec_key",
+	})
 }
 
 func TestCallFlow(t *testing.T) {
-	NewActApi().CallFlow(context.Background(), &client.ReqParam{
-		ActId:      6512,
+	rsp := client.Response{}
+	err := NewActApi().CallFlow(context.Background(), &client.Param{
+		ActId:      6351,
 		LivePlatId: "huya",
 		GameId:     "yxzj",
-		User:       &client.PlatUser{},
-		FromGame:   false,
-	}, map[string]interface{}{
-		"flowId": "xxx",
+		User:       &client.PlatUser{Userid: "xx"},
+	}, "274224f1", nil, &rsp)
+	t.Logf("%v %v", rsp, err)
+}
+
+func TestReceiveAward(t *testing.T) {
+	rsp, err := NewActApi().ReceiveAward(context.Background(), &client.Param{
+		ActId:      6571,
+		LivePlatId: "huya",
+		GameId:     "yxzj",
+		User:       &client.PlatUser{Userid: "xxxxx"},
+	}, "b364e211", "12345678901234567", nil)
+	t.Logf("%v %v", rsp, err)
+}
+
+func TestGetActList(t *testing.T) {
+	rsp, err := NewActApi().GetActList(context.Background(), &GetActListReq{
+		Page:       1,
+		Size:       10,
+		LivePlatId: "huya",
+		GameId:     "yxzj",
+		IsOnline:   true,
 	})
+	t.Logf("%v %v", rsp, err)
 }
