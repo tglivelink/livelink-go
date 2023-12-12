@@ -26,32 +26,36 @@ import (
 	"github.com/tglivelink/livelink-go/bind"
 )
 
-// step.1 初始化全局客户端,只需要设置一次即可,默认所有的请求都会使用这个客户端
-client.DefaultClient = client.New(client.Secret{
-	SigKey: "your sig_key",
-	SecKey: "your sec_key",
-})
+func init() {
+	// step.1 初始化全局客户端,只需要设置一次即可,默认所有的请求都会使用这个客户端
+	client.DefaultClient = client.New(client.Secret{
+		SigKey: "your sig_key",
+		SecKey: "your sec_key",
+	})
+}
 
+func main() {
+	// eg. 直接调用拉取绑定的游戏角色信息
+	bind.NewBindApi().GetBoundGameRole(context.Background(), &client.Param{
+		LivePlatId: "huya",
+		GameId:     "cf",
+		User:       &client.PlatUser{Userid: "xxxxx"},
+	},
+	)
+	
+	// eg. 如果部分api请求需要使用不同的签名信息，可以这样设置，不会影响全局
+	api := bind.NewBindApi(client.WithSecret(client.Secret{
+		SigKey: "other sig_key",
+		SecKey: "other sec_key",
+	}))
+	api.GetBoundGameRole(context.Background(), &client.Param{
+		LivePlatId: "huya",
+		GameId:     "cf",
+		User:       &client.PlatUser{Userid: "xxxxx"},
+	},
+	)
+}
 
-// eg. 直接调用拉取绑定的游戏角色信息
-NewBindApi().GetBoundGameRole(context.Background(), &client.Param{
-	LivePlatId: "huya",
-	GameId:     "cf",
-	User:       &client.PlatUser{Userid: "xxxxx"},
-},
-)
-
-// eg. 如果部分api请求需要使用不同的签名信息，可以这样设置，不会影响全局
-api := NewBindApi(client.WithSecret(client.Secret{
-	SigKey: "other sig_key",
-	SecKey: "other sec_key",
-}))
-api.GetBoundGameRole(context.Background(), &client.Param{
-	LivePlatId: "huya",
-	GameId:     "cf",
-	User:       &client.PlatUser{Userid: "xxxxx"},
-},
-)
 ```
 
 ## 直接使用底层发起调用
