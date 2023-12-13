@@ -8,13 +8,14 @@ import (
 	"github.com/tglivelink/livelink-go/pkg/client"
 )
 
+// ActApi 活动相关api
 type ActApi interface {
 	// CallFlow 调用活动流程
 	CallFlow(ctx context.Context, param *client.Param, req *CallFlowReq, rsp interface{}, opts ...client.Options) (err error)
 	// ReceiveAward 领取礼包，需要携带幂等号uniq
 	ReceiveAward(ctx context.Context, param *client.Param, req *ReceiveAwardReq, opts ...client.Options) (rsp ReceiveAwardRsp, err error)
 	// GetActList 拉取活动列表
-	GetActList(ctx context.Context, req *GetActListReq) (rsp GetActListRsp, err error)
+	GetActList(ctx context.Context, req *GetActListReq, opts ...client.Options) (rsp GetActListRsp, err error)
 }
 
 // NewActApi
@@ -140,7 +141,7 @@ type GetActListRsp struct {
 	} `json:"jData"`
 }
 
-func (aa *actApi) GetActList(ctx context.Context, req *GetActListReq) (rsp GetActListRsp, err error) {
+func (aa *actApi) GetActList(ctx context.Context, req *GetActListReq, opts ...client.Options) (rsp GetActListRsp, err error) {
 	if req.LivePlatId == "" {
 		err = fmt.Errorf("LivePlatId is empty")
 		return
@@ -167,7 +168,7 @@ func (aa *actApi) GetActList(ctx context.Context, req *GetActListReq) (rsp GetAc
 	head.PathOrApiName = "ApiActList"
 	head.Rsp = &rsp
 
-	err = aa.api.Request(ctx, head)
+	err = aa.api.Request(ctx, head, opts...)
 	return
 }
 
