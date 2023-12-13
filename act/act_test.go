@@ -21,7 +21,7 @@ func TestCallFlow(t *testing.T) {
 		LivePlatId: "huya",
 		GameId:     "yxzj",
 		User:       &client.PlatUser{Userid: "xx"},
-	}, "274224f1", nil, &rsp)
+	}, &CallFlowReq{FlowId: "274224f1"}, &rsp)
 	t.Logf("%v %v", rsp, err)
 }
 
@@ -31,7 +31,7 @@ func TestReceiveAward(t *testing.T) {
 		LivePlatId: "huya",
 		GameId:     "yxzj",
 		User:       &client.PlatUser{Userid: "xxxxx"},
-	}, "b364e211", "12345678901234567", nil)
+	}, &ReceiveAwardReq{FlowId: "b364e211", OrderId: "12345678901234567"})
 	t.Logf("%v %v", rsp, err)
 }
 

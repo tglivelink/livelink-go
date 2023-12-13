@@ -10,9 +10,9 @@ import (
 
 type ActApi interface {
 	// CallFlow 调用活动流程
-	CallFlow(ctx context.Context, param *client.Param, flowId string, body map[string]interface{}, rsp interface{}, opts ...client.Options) (err error)
+	CallFlow(ctx context.Context, param *client.Param, req *CallFlowReq, rsp interface{}, opts ...client.Options) (err error)
 	// ReceiveAward 领取礼包，需要携带幂等号uniq
-	ReceiveAward(ctx context.Context, param *client.Param, flowId, uniq string, body map[string]interface{}, opts ...client.Options) (rsp ReceiveAwardRsp, err error)
+	ReceiveAward(ctx context.Context, param *client.Param, req *ReceiveAwardReq, opts ...client.Options) (rsp ReceiveAwardRsp, err error)
 	// GetActList 拉取活动列表
 	GetActList(ctx context.Context, req *GetActListReq) (rsp GetActListRsp, err error)
 }
@@ -30,12 +30,17 @@ type actApi struct {
 	api *pkg.Api
 }
 
-/**************************/
+/************************************************* 调用活动流程 **********/
 
-func (aa *actApi) CallFlow(ctx context.Context, param *client.Param, flowId string,
-	body map[string]interface{}, rsp interface{}, opts ...client.Options) (err error) {
+type CallFlowReq struct {
+	FlowId string
+	Other  map[string]interface{}
+}
 
-	if flowId == "" {
+func (aa *actApi) CallFlow(ctx context.Context, param *client.Param, req *CallFlowReq,
+	rsp interface{}, opts ...client.Options) (err error) {
+
+	if req.FlowId == "" {
 		err = fmt.Errorf("flowId is empty")
 		return
 	}
@@ -44,11 +49,11 @@ func (aa *actApi) CallFlow(ctx context.Context, param *client.Param, flowId stri
 		return
 	}
 
+	body := req.Other
 	if body == nil {
 		body = make(map[string]interface{})
 	}
-
-	body["flowId"] = flowId
+	body["flowId"] = req.FlowId
 
 	ctx, head := aa.api.Head(ctx)
 	head.PathOrApiName = "apiRequest"
@@ -61,7 +66,13 @@ func (aa *actApi) CallFlow(ctx context.Context, param *client.Param, flowId stri
 	return
 }
 
-/*************************/
+/****************************************************** 调用发货接口 **********/
+
+type ReceiveAwardReq struct {
+	FlowId  string
+	OrderId string // 唯一订单号，一般是 16~32字节
+	Other   map[string]interface{}
+}
 
 type ReceiveAwardRsp struct {
 	client.ResponseBase
@@ -83,30 +94,28 @@ type ReceiveAwardRsp struct {
 	} `json:"jData"`
 }
 
-func (aa *actApi) ReceiveAward(ctx context.Context, param *client.Param, flowId, uniq string,
-	body map[string]interface{}, opts ...client.Options) (rsp ReceiveAwardRsp, err error) {
+func (aa *actApi) ReceiveAward(ctx context.Context, param *client.Param, req *ReceiveAwardReq,
+	opts ...client.Options) (rsp ReceiveAwardRsp, err error) {
 	if param.User == nil || param.User.Key() == "" {
-		err = fmt.Errorf("use is empty")
+		err = fmt.Errorf("user is empty")
 		return
 	}
-	if uniq == "" {
-		err = fmt.Errorf("uniq is empty")
+	if req.OrderId == "" {
+		err = fmt.Errorf("OrderId is empty")
 		return
 	}
-	if len(uniq) > 32 {
-		err = fmt.Errorf("uniq is too long")
-		return
-	}
+
+	body := req.Other
 	if body == nil {
 		body = make(map[string]interface{})
 	}
-	body["serialCode"] = uniq
+	body["serialCode"] = req.OrderId
 
-	err = aa.CallFlow(ctx, param, flowId, body, &rsp, opts...)
+	err = aa.CallFlow(ctx, param, &CallFlowReq{FlowId: req.FlowId, Other: body}, &rsp, opts...)
 	return
 }
 
-/*****************************************/
+/**************************************** 拉取活动列表 **************/
 
 type GetActListReq struct {
 	Page       int    `json:"page"`
@@ -161,3 +170,5 @@ func (aa *actApi) GetActList(ctx context.Context, req *GetActListReq) (rsp GetAc
 	err = aa.api.Request(ctx, head)
 	return
 }
+
+/***********************************************/
