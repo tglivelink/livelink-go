@@ -2,9 +2,9 @@ package pkg
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/tglivelink/livelink-go/pkg/client"
+	"github.com/tglivelink/livelink-go/pkg/errs"
 )
 
 type Api struct {
@@ -31,11 +31,9 @@ func (api *Api) Head(ctx context.Context) (context.Context, *client.Head) {
 }
 
 func (api *Api) CheckUser(ctx context.Context, user client.User) error {
-	if user == nil {
-		return fmt.Errorf("user cannot be nil")
-	}
-	if user.Key() == "" {
-		return fmt.Errorf("user is empty")
+
+	if user == nil || user.Key() == "" {
+		return errs.ErrUserInvalid
 	}
 	return nil
 }

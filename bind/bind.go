@@ -59,8 +59,7 @@ func (ba *bindApi) GetBoundGameRole(ctx context.Context, param *client.Param, op
 		err = errs.ErrGameIdInvalid
 		return
 	}
-	if param.User == nil || param.User.Key() == "" {
-		err = errs.ErrUserInvalid
+	if err = ba.api.CheckUser(ctx, param.User); err != nil {
 		return
 	}
 
