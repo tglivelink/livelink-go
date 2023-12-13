@@ -40,10 +40,10 @@ type GetBoundGameRoleRsp struct {
 			Type string `json:"type"` // 游戏账号类型，"qq" or "wx"
 		} `json:"gameAcc"`
 		GameRole struct { // 游戏角色信息
-			RoleName      string `json:"roleName"`
-			AreaName      string `json:"areaName"`
-			PartitionName string `json:"partitionName"`
-			PlatName      string `json:"platName"`
+			RoleName      string `json:"roleName"`      // 角色名称
+			AreaName      string `json:"areaName"`      // 大区名
+			PartitionName string `json:"partitionName"` // 小区名
+			PlatName      string `json:"platName"`      // iOS 、 Android
 		} `json:"gameRole"`
 	} `json:"jData"`
 }
@@ -85,7 +85,7 @@ type GetBoundGameRoleInActRsp struct {
 func (ba *bindApi) GetBoundGameRoleInAct(ctx context.Context, param *client.Param, opts ...client.Options) (rsp GetBoundGameRoleInActRsp, err error) {
 
 	if param.ActId <= 0 {
-		err = fmt.Errorf("缺少活动ID")
+		err = fmt.Errorf("actId is invalid")
 		return
 	}
 
@@ -103,7 +103,7 @@ func (ba *bindApi) GetBoundGameRoleInAct(ctx context.Context, param *client.Para
 func (ba *bindApi) BindGameRoleInAct(ctx context.Context, param *client.Param, opts ...client.Options) (rsp client.ResponseBase, err error) {
 
 	if param.ActId <= 0 {
-		err = fmt.Errorf("缺少活动ID")
+		err = fmt.Errorf("actId is invalid")
 		return
 	}
 
