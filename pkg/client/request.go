@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/tglivelink/livelink-go/pkg/errs"
 	"github.com/tglivelink/livelink-go/pkg/util"
 )
 
@@ -41,6 +42,22 @@ func (r *Param) AddExt(k, v string) {
 		r.Ext = make(map[string]string)
 	}
 	r.Ext[k] = v
+}
+
+func (p *Param) Check() error {
+	if p.ActId <= 0 {
+		return errs.ErrActIdInvalid
+	}
+	if p.LivePlatId == "" {
+		return errs.ErrLivePlatIdInvalid
+	}
+	if p.GameId == "" {
+		return errs.ErrGameIdInvalid
+	}
+	if p.User == nil || p.User.Key() == "" {
+		return errs.ErrUserInvalid
+	}
+	return nil
 }
 
 // PlatUser 平台用户

@@ -2,10 +2,10 @@ package bind
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/tglivelink/livelink-go/pkg"
 	"github.com/tglivelink/livelink-go/pkg/client"
+	"github.com/tglivelink/livelink-go/pkg/errs"
 )
 
 // BindApi 绑定相关api
@@ -51,6 +51,19 @@ type GetBoundGameRoleRsp struct {
 // GetBoundGameRole
 func (ba *bindApi) GetBoundGameRole(ctx context.Context, param *client.Param, opts ...client.Options) (rsp GetBoundGameRoleRsp, err error) {
 
+	if param.LivePlatId == "" {
+		err = errs.ErrLivePlatIdInvalid
+		return
+	}
+	if param.GameId == "" {
+		err = errs.ErrGameIdInvalid
+		return
+	}
+	if param.User == nil || param.User.Key() == "" {
+		err = errs.ErrUserInvalid
+		return
+	}
+
 	ctx, head := ba.api.Head(ctx)
 	head.PathOrApiName = "GetBindInfo"
 	head.Param = param
@@ -84,8 +97,7 @@ type GetBoundGameRoleInActRsp struct {
 // GetBoundGameRoleInAct
 func (ba *bindApi) GetBoundGameRoleInAct(ctx context.Context, param *client.Param, opts ...client.Options) (rsp GetBoundGameRoleInActRsp, err error) {
 
-	if param.ActId <= 0 {
-		err = fmt.Errorf("actId is invalid")
+	if err = param.Check(); err != nil {
 		return
 	}
 
@@ -102,8 +114,7 @@ func (ba *bindApi) GetBoundGameRoleInAct(ctx context.Context, param *client.Para
 /**********************************************/
 func (ba *bindApi) BindGameRoleInAct(ctx context.Context, param *client.Param, opts ...client.Options) (rsp client.ResponseBase, err error) {
 
-	if param.ActId <= 0 {
-		err = fmt.Errorf("actId is invalid")
+	if err = param.Check(); err != nil {
 		return
 	}
 

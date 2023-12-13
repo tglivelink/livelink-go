@@ -6,6 +6,7 @@ import (
 
 	"github.com/tglivelink/livelink-go/pkg"
 	"github.com/tglivelink/livelink-go/pkg/client"
+	"github.com/tglivelink/livelink-go/pkg/errs"
 )
 
 // ActApi 活动相关api
@@ -42,11 +43,10 @@ func (aa *actApi) CallFlow(ctx context.Context, param *client.Param, req *CallFl
 	rsp interface{}, opts ...client.Options) (err error) {
 
 	if req.FlowId == "" {
-		err = fmt.Errorf("flowId is empty")
+		err = fmt.Errorf("flowId is invalid")
 		return
 	}
-	if param.ActId <= 0 {
-		err = fmt.Errorf("actId is invalid")
+	if err = param.Check(); err != nil {
 		return
 	}
 
@@ -97,12 +97,12 @@ type ReceiveAwardRsp struct {
 
 func (aa *actApi) ReceiveAward(ctx context.Context, param *client.Param, req *ReceiveAwardReq,
 	opts ...client.Options) (rsp ReceiveAwardRsp, err error) {
-	if param.User == nil || param.User.Key() == "" {
-		err = fmt.Errorf("user is empty")
+
+	if err = param.Check(); err != nil {
 		return
 	}
 	if req.OrderId == "" {
-		err = fmt.Errorf("OrderId is empty")
+		err = fmt.Errorf("OrderId is invalid")
 		return
 	}
 
@@ -143,7 +143,7 @@ type GetActListRsp struct {
 
 func (aa *actApi) GetActList(ctx context.Context, req *GetActListReq, opts ...client.Options) (rsp GetActListRsp, err error) {
 	if req.LivePlatId == "" {
-		err = fmt.Errorf("LivePlatId is empty")
+		err = errs.ErrLivePlatIdInvalid
 		return
 	}
 	if req.Page < 1 {

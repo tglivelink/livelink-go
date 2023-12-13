@@ -61,14 +61,21 @@ type Options func(o *Option)
 
 /**********/
 
-// WithSigner xxxx
+// WithSigner
 func WithSigner(t codec.SignType) Options {
 	return func(o *Option) {
 		o.Signer = t
 	}
 }
 
-// WithHttpClient xxxx
+// WithCoder
+func WithCoder(c codec.CodeType) Options {
+	return func(o *Option) {
+		o.Coder = c
+	}
+}
+
+// WithHttpClient
 func WithHttpClient(c interface {
 	Do(*http.Request) (*http.Response, error)
 }) Options {
@@ -77,7 +84,7 @@ func WithHttpClient(c interface {
 	}
 }
 
-// WithSecret xxxx
+// WithSecret
 func WithSecret(s Secret) Options {
 	return func(o *Option) {
 		o.SecKey = s.SecKey
@@ -85,14 +92,14 @@ func WithSecret(s Secret) Options {
 	}
 }
 
-// WithDomain xxxx
+// WithDomain
 func WithDomain(s string) Options {
 	return func(o *Option) {
 		o.Domain = s
 	}
 }
 
-// WithTimeout xxxx
+// WithTimeout
 func WithTimeout(d time.Duration) Options {
 	return func(o *Option) {
 		o.Timeout = d
