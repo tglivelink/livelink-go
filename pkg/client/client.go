@@ -144,8 +144,6 @@ func (c *client) getHttpReq(ctx context.Context, head *Head, kvs map[string]stri
 	addr := c.mergePath(opt.Domain, head.PathOrApiName)
 	addr += "?" + query.Encode()
 
-	log.InfoContextf(ctx, "request:%s", addr)
-
 	var bs []byte
 	var err error
 
@@ -156,6 +154,8 @@ func (c *client) getHttpReq(ctx context.Context, head *Head, kvs map[string]stri
 	} else {
 		bs = []byte(`{}`)
 	}
+
+	log.InfoContextf(ctx, "request:%s,%s", addr, bs)
 
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, addr, bytes.NewBuffer(bs))
 	if err != nil {
