@@ -21,10 +21,13 @@ type Client interface {
 
 var DefaultClient Client = New(Secret{})
 
-func New(secret Secret) Client {
+func New(secret Secret, opts ...Options) Client {
 	opt := NewOption()
 	opt.SecKey = secret.SecKey
 	opt.SigKey = secret.SigKey
+	for _, v := range opts {
+		v(opt)
+	}
 	return &client{opt: opt}
 }
 

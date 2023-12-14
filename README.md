@@ -22,13 +22,14 @@
 
 import (
 	"context"
-
+	
 	"github.com/tglivelink/livelink-go/pkg/client"
+	"github.com/tglivelink/livelink-go/act"
 	"github.com/tglivelink/livelink-go/bind"
 )
 
 func init() {
-	// step.1 初始化全局客户端,只需要设置一次即可,默认所有的请求都会使用这个客户端
+	// step.1 建议在调用前，采用如下方式初始化全局秘钥,这时只需要设置一次即可，后续请求默认都会使用这个客户端 
 	client.DefaultClient = client.New(client.Secret{
 		SigKey: "your sig_key",
 		SecKey: "your sec_key",
@@ -41,10 +42,17 @@ func main() {
 		LivePlatId: "huya",
 		GameId:     "cf",
 		User:       &client.PlatUser{Userid: "xxxxx"},
-	},
-	)
+	})
+
+	// eg. 调用发货流程
+	rsp, err := act.NewActApi().ReceiveAward(context.Background(), &client.Param{
+		ActId:      6571,
+		LivePlatId: "huya",
+		GameId:     "yxzj",
+		User:       &client.PlatUser{Userid: "xxxxx"},
+	}, &ReceiveAwardReq{FlowId: "b364e211", OrderId: "12345678901234567"})
 	
-	// eg. 如果部分api请求需要使用不同的签名信息，可以这样设置，不会影响全局
+	// eg. 如果需要临时使用其他秘钥，可以这样设置，只会影响当前api,不会影响全局秘钥
 	api := bind.NewBindApi(client.WithSecret(client.Secret{
 		SigKey: "other sig_key",
 		SecKey: "other sec_key",
@@ -53,8 +61,7 @@ func main() {
 		LivePlatId: "huya",
 		GameId:     "cf",
 		User:       &client.PlatUser{Userid: "xxxxx"},
-	},
-	)
+	})
 }
 
 ```
