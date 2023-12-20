@@ -17,6 +17,8 @@ type ActApi interface {
 	ReceiveAward(ctx context.Context, param *client.Param, req *ReceiveAwardReq, opts ...client.Options) (rsp ReceiveAwardRsp, err error)
 	// GetActList 拉取活动列表
 	GetActList(ctx context.Context, req *GetActListReq, opts ...client.Options) (rsp GetActListRsp, err error)
+	// GetUserMutexActStatus 检查用户互斥互动的参与状态
+	GetUserMutexActStatus(ctx context.Context, param *client.Param, opts ...client.Options) (rsp GetMutexActStatusRsp, err error)
 }
 
 // NewActApi
@@ -172,4 +174,25 @@ func (aa *actApi) GetActList(ctx context.Context, req *GetActListReq, opts ...cl
 	return
 }
 
-/***********************************************/
+/************************************** 检查用户互斥互动的参与状态 *********/
+
+type GetMutexActStatusRsp struct {
+	client.ResponseBase
+	Data struct {
+		// Status 用户状态 0-还未参与任何活动(或者活动不属于任何互斥组) 1-游戏用户被锁定在当前活动 2-游戏用户被锁定在其他活动
+		Status int    `json:"status"`
+		Msg    string `json:"msg"`
+	} `json:"jData"`
+}
+
+func (aa *actApi) GetUserMutexActStatus(ctx context.Context, param *client.Param, opts ...client.Options) (rsp GetMutexActStatusRsp, err error) {
+	if err = param.Check(); err != nil {
+		return
+	}
+	ctx, head := aa.api.Head(ctx)
+	head.PathOrApiName = "/api/user/getActMutexInfo"
+	head.Param = param
+	head.Rsp = &rsp
+	err = aa.api.Request(ctx, head, opts...)
+	return
+}

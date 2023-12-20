@@ -45,3 +45,13 @@ func TestGetActList(t *testing.T) {
 	})
 	t.Logf("%v %v", rsp, err)
 }
+
+func TestGetUserMutexActStatus(t *testing.T) {
+	rsp, err := NewActApi().GetUserMutexActStatus(context.Background(), &client.Param{
+		ActId:      6561,
+		LivePlatId: "xiaomigame",
+		GameId:     "ymzx",
+		User:       &client.PlatUser{Userid: ""},
+	})
+	t.Logf("%v %v", rsp, err)
+}
