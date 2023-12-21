@@ -16,6 +16,8 @@ type BindApi interface {
 	GetBoundGameRoleInAct(ctx context.Context, param *client.Param, opts ...client.Options) (rsp GetBoundGameRoleInActRsp, err error)
 	// BindGameRoleInAct 将用户当前游戏账号应用于某个活动 （针对不可换绑活动）
 	BindGameRoleInAct(ctx context.Context, param *client.Param, opts ...client.Options) (rsp client.ResponseBase, err error)
+	// GetBoundQQ 拉取当前用户绑定的QQ号
+	GetBoundQQ(ctx context.Context, param *client.Param, opts ...client.Options) (rsp GetBoundQQRsp, err error)
 }
 
 // NewBindApi xxxx
@@ -119,6 +121,35 @@ func (ba *bindApi) BindGameRoleInAct(ctx context.Context, param *client.Param, o
 
 	ctx, head := ba.api.Head(ctx)
 	head.PathOrApiName = "ActBind"
+	head.Param = param
+	head.Rsp = &rsp
+
+	err = ba.api.Request(ctx, head, opts...)
+
+	return
+}
+
+/*************************************/
+
+type GetBoundQQRsp struct {
+	client.ResponseBase
+	Data struct {
+		Uin           string `json:"uin"`           // 模糊的qq号，类似 ‘2323****’，为空表示未绑定
+		AccountAvatar string `json:"accountAvatar"` // 头像
+		AccountName   string `json:"accountName"`   // 昵称
+	} `json:"jData"`
+}
+
+func (ba *bindApi) GetBoundQQ(ctx context.Context, param *client.Param, opts ...client.Options) (rsp GetBoundQQRsp, err error) {
+	if param.LivePlatId == "" {
+		err = errs.ErrLivePlatIdInvalid
+		return
+	}
+	if err = ba.api.CheckUser(ctx, param.User); err != nil {
+		return
+	}
+	ctx, head := ba.api.Head(ctx)
+	head.PathOrApiName = "GetRegUin"
 	head.Param = param
 	head.Rsp = &rsp
 

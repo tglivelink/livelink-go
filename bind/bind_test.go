@@ -43,3 +43,11 @@ func TestBindGameRoleInAct(t *testing.T) {
 	})
 	t.Logf("%v %v", rsp, err)
 }
+
+func TestGetBoundQQ(t *testing.T) {
+	rsp, err := NewBindApi().GetBoundQQ(context.Background(), &client.Param{
+		LivePlatId: "huya",
+		User:       &client.PlatUser{Userid: "xxx"},
+	})
+	t.Logf("%v %v", rsp, err)
+}
