@@ -39,9 +39,6 @@ func Sign(param *client.Param, secret *client.Secret, opts ...client.Options) (u
 	if param.LivePlatId == "" {
 		return nil, fmt.Errorf("缺少LivePlatId参数")
 	}
-	if param.GameId == "" {
-		return nil, fmt.Errorf("缺少GameId参数")
-	}
 
 	opt := client.Option{}
 	for _, v := range opts {
