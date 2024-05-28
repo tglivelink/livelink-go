@@ -31,7 +31,12 @@ type IsAuthorizedReq struct {
 }
 
 type IsAuthorizedRsp struct {
+	// Deprecated: use data.IsGranted
 	IsGranted bool `json:"isGranted"`
+	client.ResponseBase
+	Data struct {
+		IsGranted bool `json:"isGranted"`
+	} `json:"jData"`
 }
 
 func (pa *privacyApi) IsAuthorized(ctx context.Context, param *client.Param, req *IsAuthorizedReq,
