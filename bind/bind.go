@@ -2,6 +2,7 @@ package bind
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/tglivelink/livelink-go/pkg"
 	"github.com/tglivelink/livelink-go/pkg/client"
@@ -18,6 +19,8 @@ type BindApi interface {
 	BindGameRoleInAct(ctx context.Context, param *client.Param, opts ...client.Options) (rsp client.ResponseBase, err error)
 	// GetBoundQQ 拉取当前用户绑定的QQ号
 	GetBoundQQ(ctx context.Context, param *client.Param, opts ...client.Options) (rsp GetBoundQQRsp, err error)
+	// Unbind 解绑游戏账号
+	Unbind(ctx context.Context, param *client.Param, req *UnbindReq, opts ...client.Options) (rsp UnbindRsp, err error)
 }
 
 // NewBindApi xxxx
@@ -151,6 +154,43 @@ func (ba *bindApi) GetBoundQQ(ctx context.Context, param *client.Param, opts ...
 	ctx, head := ba.api.Head(ctx)
 	head.PathOrApiName = "GetRegUin"
 	head.Param = param
+	head.Rsp = &rsp
+
+	err = ba.api.Request(ctx, head, opts...)
+
+	return
+}
+
+type UnbindReq struct {
+	GameRoleId string `json:"gameRoleId"` // 查询接口时返回的绑定角色唯一标识
+}
+
+type UnbindRsp struct {
+	client.ResponseBase
+	Data struct{} `json:"jData"`
+}
+
+func (ba *bindApi) Unbind(ctx context.Context, param *client.Param, req *UnbindReq, opts ...client.Options) (
+	rsp UnbindRsp, err error) {
+	if param.LivePlatId == "" {
+		err = errs.ErrLivePlatIdInvalid
+		return
+	}
+	if err = ba.api.CheckUser(ctx, param.User); err != nil {
+		return
+	}
+
+	if req.GameRoleId == "" {
+		err = fmt.Errorf("gameRoleId is invalid")
+		return
+	}
+	body := make(map[string]interface{})
+	body["gameRoleId"] = req.GameRoleId
+
+	ctx, head := ba.api.Head(ctx)
+	head.PathOrApiName = "Unbind"
+	head.Param = param
+	head.Body = body
 	head.Rsp = &rsp
 
 	err = ba.api.Request(ctx, head, opts...)

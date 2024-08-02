@@ -51,3 +51,15 @@ func TestGetBoundQQ(t *testing.T) {
 	})
 	t.Logf("%v %v", rsp, err)
 }
+
+func TestUnbind(t *testing.T) {
+	rsp, err := NewBindApi().Unbind(context.Background(), &client.Param{
+		LivePlatId: "huya",
+		GameId:     "yxzj",
+		User:       &client.PlatUser{Userid: "xxx"},
+		Ext:        map[string]string{"token": "yyy"},
+	}, &UnbindReq{
+		GameRoleId: "zzz",
+	})
+	t.Logf("%v %v", rsp, err)
+}
