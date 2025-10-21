@@ -86,7 +86,7 @@ type GameUser struct {
 	AreaName     string `json:"areaName,omitempty"`
 	PlatName     string `json:"platName,omitempty"`
 	RoleName     string `json:"roleName,omitempty"`
-	AccType      string `json:"accType,omitempty"`
+	AccType      string `json:"accType,omitempty"` // qq、wx
 }
 
 func (g *GameUser) Key() string {

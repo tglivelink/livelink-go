@@ -3,9 +3,11 @@ package sign
 import (
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/tglivelink/livelink-go/pkg/client"
 	"github.com/tglivelink/livelink-go/pkg/codec"
+	"github.com/tglivelink/livelink-go/pkg/util"
 )
 
 /**************************/
@@ -73,3 +75,53 @@ func Sign(param *client.Param, secret *client.Secret, opts ...client.Options) (u
 }
 
 /************************************/
+
+type LivelinkLogin struct {
+	T     int64
+	Nonce string
+	User  *client.GameUser
+}
+
+// SignForLivelinkLoginType 游戏反绑，使用LiveLink登录模式
+// see also https://livelink.qq.com/doc/activities/pages/bind/web-sdk/lm-livelink.html
+func SignForLivelinkLoginType(param *LivelinkLogin, secret *client.Secret, opts ...client.Options) (code, sign string, err error) {
+
+	if param.User == nil || param.User.Key() == "" {
+		return "", "", fmt.Errorf("缺少User参数")
+	}
+
+	if param.T <= 0 {
+		param.T = time.Now().Unix()
+	}
+	if param.Nonce == "" {
+		param.Nonce = fmt.Sprintf("%x", util.RandBytes(3))
+	}
+
+	opt := client.Option{}
+	for _, v := range opts {
+		v(&opt)
+	}
+
+	if err = opt.Check(); err != nil {
+		return
+	}
+
+	var userByte []byte
+	userByte, err = codec.GetSerializer(opt.Serializer).Marshal(param.User)
+	if err != nil {
+		return
+	}
+	userByte, err = codec.GetCoder(opt.Coder).Encrypt(userByte, secret.SecKey)
+	if err != nil {
+		return
+	}
+	code = string(userByte)
+
+	sign = codec.GetSigner(opt.Signer).Sign(map[string]string{
+		"t":     fmt.Sprintf("%d", param.T),
+		"nonce": param.Nonce,
+		"code":  code,
+	}, secret.SigKey)
+
+	return
+}

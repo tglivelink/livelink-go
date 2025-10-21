@@ -14,8 +14,8 @@ var secret = client.Secret{}
 
 func init() {
 	secret = client.Secret{
-		SigKey: "your sig_key",
-		SecKey: "your sec_key",
+		SigKey: "your sigKey",
+		SecKey: "your secKey",
 	}
 	client.DefaultClient = client.New(secret)
 }
@@ -104,5 +104,47 @@ func TestSignForWeb(t *testing.T) {
 	// 		},
 	// 		Body: data,
 	// 	})
+	// }
+}
+
+// TestSignForLivelinkType xxxx
+func TestSignForLivelinkType(t *testing.T) {
+	param := &LivelinkLogin{
+		T:     0,
+		Nonce: "",
+		User: &client.GameUser{
+			GameOpenId:   "xxxxxxxx",
+			RoleId:       "xxxxxx",
+			Area:         1,
+			PlatId:       0,
+			Partition:    1130,
+			GameNickName: "",
+			HeadImg:      "",
+			AreaName:     "",
+			PlatName:     "",
+			RoleName:     "",
+			AccType:      "qq",
+		},
+	}
+	code, sign, err := SignForLivelinkLoginType(param, &secret)
+	if err != nil {
+		t.Fatalf("err:%v", err)
+	}
+	t.Logf("code:%s sign:%s, t:%d, nonce:%s", code, sign, param.T, param.Nonce)
+	// 直接用计算后的数据发起请求
+	// {
+	// 	rsp, err := http.Post("https://s1.livelink.qq.com/api/reverseBind/login",
+	// 		"application/json",
+	// 		strings.NewReader(
+	// 			fmt.Sprintf(`{"game":"yxzj","type":4,"livelink":{"t":%d,"nonce":"%s","code":"%s","sig":"%s"}}`,
+	// 				param.T, param.Nonce, code, sign)),
+	// 	)
+	// 	if err != nil {
+	// 		log.Fatalf("Post err:%v %v", err, param)
+	// 	}
+	// 	defer rsp.Body.Close()
+
+	// 	bs, _ := io.ReadAll(rsp.Body)
+	// 	t.Logf("resp:%s  %v", bs, param)
 	// }
 }
