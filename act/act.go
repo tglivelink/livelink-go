@@ -59,7 +59,7 @@ func (aa *actApi) CallFlow(ctx context.Context, param *client.Param, req *CallFl
 	body["flowId"] = req.FlowId
 
 	ctx, head := aa.api.Head(ctx)
-	head.PathOrApiName = "apiRequest"
+	head.PathOrApiName = "ApiRequest"
 	head.Param = param
 	head.Body = body
 	head.Rsp = rsp
